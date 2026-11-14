@@ -1,3 +1,10 @@
+--=====================================================================
+--  Zaka Client v2  |  Roblox  |  Delta Executor
+--  透视 ESP  +  智能自瞄  +  独立控制台
+--  v2: 投影自研（修远距离偏框）· 骨架自动嗅探 · 手机自瞄手感 · 悬浮球
+--  用法：Delta 里 loadstring / 直接粘贴执行。关掉：控制台右上角 X
+--=====================================================================
+
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Players      = game:GetService("Players")
@@ -309,7 +316,9 @@ local function addToggle(text, default, setter)
     end)
 
     return row
-endlocal function addSlider(text, min, max, default, setter)
+end
+
+local function addSlider(text, min, max, default, setter)
     local row = Instance.new("Frame")
     row.Size = UDim2.new(1, -6, 0, 46)
     row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -640,7 +649,9 @@ do
             dragging = false
         end
     end)
-end--=====================================================================
+end
+
+--=====================================================================
 -- ESP 实体
 --=====================================================================
 local visuals = {}          -- [player] = {...}
