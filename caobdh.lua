@@ -1,10 +1,3 @@
---=====================================================================
---  Zaka Client v2  |  Roblox  |  Delta Executor
---  透视 ESP  +  智能自瞄  +  独立控制台
---  v2: 投影自研（修远距离偏框）· 骨架自动嗅探 · 手机自瞄手感 · 悬浮球
---  用法：Delta 里 loadstring / 直接粘贴执行。关掉：控制台右上角 X
---=====================================================================
-
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Players      = game:GetService("Players")
@@ -39,35 +32,32 @@ local CFG = {
         Color      = Color3.fromRGB(120, 205, 255),
         TeamColor  = Color3.fromRGB(120, 255, 160),
         Rainbow    = false,
-        ProjMode   = "自研",     -- 自研 / 原生
-        OffsetY    = 0,          -- 垂直校准（个别执行器坐标系有 inset 时用）
+        ProjMode   = "自研",
+        OffsetY    = 0,
     },
     GAME = {
-        Preset     = "自动",     -- 自动 / 通用 / BloxStrike / 防御模式
+        Preset     = "自动",
     },
     AIM = {
         Enabled    = false,
-        Hold       = false,      -- 关掉=常开；打开=按住屏幕右侧才跟
+        Hold       = false,
         FOV        = 220,
         Smooth     = 7,
-        Part       = "头部",     -- 头部 / 躯干 / 智能
+        Part       = "头部",
         MaxDist    = 800,
         TeamCheck  = true,
         WallCheck  = true,
         Prediction = 0.14,
         Sticky     = true,
         ShowFOV    = true,
-        Deadzone   = 1,          -- 度，离目标足够近就不动（防抖）
-        MaxDegPerSec = 900,      -- 每秒最大转角，手抖也不甩飞
-        BulletSpeed  = 0,        -- 0=关；填弹速后按距离自动补提前量
-        SwitchDelay  = 0.12,     -- 换人前新目标要稳定多久
+        Deadzone   = 1,
+        MaxDegPerSec = 900,
+        BulletSpeed  = 0,
+        SwitchDelay  = 0.12,
         FOVColor   = Color3.fromRGB(150, 210, 255),
     },
 }
 
---=====================================================================
--- Drawing 兜底（万一执行器没 Drawing，就只跑逻辑不画 ESP）
---=====================================================================
 local function D(kind)
     if not HAS_DRAWING then return nil end
     local ok, obj = pcall(Drawing.new, kind)
@@ -75,9 +65,6 @@ local function D(kind)
     return nil
 end
 
---=====================================================================
--- 控制台 UI
---=====================================================================
 local gethuiFn = gethui or function() return game:GetService("CoreGui") end
 local parentGui
 pcall(function() parentGui = gethuiFn() end)
@@ -119,7 +106,6 @@ local function pad(inst, a)
     return p
 end
 
--- 主面板（液态玻璃）
 local MAIN_W, MAIN_H = 300, 430
 local main = Instance.new("Frame")
 main.Size = UDim2.fromOffset(MAIN_W, MAIN_H)
@@ -132,7 +118,6 @@ main.Parent = gui
 corner(main, 16)
 local mainStroke = stroke(main, Color3.fromRGB(140, 200, 255), 1.2, 0.55)
 
--- 顶部光斑（玻璃质感）
 local glow = Instance.new("Frame")
 glow.Size = UDim2.new(1, 0, 0, 90)
 glow.BackgroundColor3 = Color3.fromRGB(90, 160, 255)
@@ -148,7 +133,6 @@ glowGrad.Transparency = NumberSequence.new({
 glowGrad.Rotation = 90
 glowGrad.Parent = glow
 
--- 标题栏
 local bar = Instance.new("Frame")
 bar.Size = UDim2.new(1, 0, 0, 46)
 bar.BackgroundTransparency = 1
@@ -187,7 +171,6 @@ closeBtn.AutoButtonColor = false
 closeBtn.Parent = bar
 corner(closeBtn, 8)
 
--- 分隔线
 local line = Instance.new("Frame")
 line.Size = UDim2.new(1, -32, 0, 1)
 line.Position = UDim2.new(0, 16, 0, 46)
@@ -196,7 +179,6 @@ line.BackgroundTransparency = 0.85
 line.BorderSizePixel = 0
 line.Parent = main
 
--- 滚动区
 local scroll = Instance.new("ScrollingFrame")
 scroll.Size = UDim2.new(1, -24, 1, -112)
 scroll.Position = UDim2.new(0, 12, 0, 56)
@@ -213,7 +195,6 @@ list.Padding = UDim.new(0, 6)
 list.SortOrder = Enum.SortOrder.LayoutOrder
 list.Parent = scroll
 
--- 底部状态条
 local foot = Instance.new("Frame")
 foot.Size = UDim2.new(1, -24, 0, 30)
 foot.Position = UDim2.new(0, 12, 1, -42)
@@ -448,11 +429,6 @@ local function addChoice(text, options, defaultIdx, setter)
     return row
 end
 
---=====================================================================
--- 游戏自适应预设
---  自动模式按游戏名嗅探；嗅不出来就走通用参数（通用参数本身已经骨架
---  自适应，任何正常角色模型都能画对位置）。
---=====================================================================
 local PRESETS = {
     ["通用"]       = {FOV = 220, Smooth = 7,  Prediction = 0.14, ESPDist = 1200, AIMDist = 800},
     ["BloxStrike"] = {FOV = 165, Smooth = 5,  Prediction = 0.10, ESPDist = 1500, AIMDist = 950},
@@ -489,9 +465,6 @@ local function applyPreset(name)
     return key
 end
 
---=====================================================================
--- 装配控制台
---=====================================================================
 addSection("透视  /  ESP")
 addToggle("启用透视", CFG.ESP.Enabled, function(v) CFG.ESP.Enabled = v end)
 addToggle("方框",     CFG.ESP.Box,     function(v) CFG.ESP.Box = v end)
@@ -531,32 +504,21 @@ addSlider("换人延迟ms", 0, 600, 120, function(v) CFG.AIM.SwitchDelay = v / 1
 addSection("适配  /  GAME")
 addChoice("游戏预设", {"自动", "通用", "BloxStrike", "防御模式"}, 1, function(v) applyPreset(v) end)
 
---=====================================================================
---  悬浮球：面板收起来之后留一个圆球，点一下就展开
---  球可以拖，拖动不算点击（位移超过 6px 就不算）
---=====================================================================
+-- [插入点 A] 下面这段是新增的缩小按钮+悬浮球，接在你原代码后面
 local BALL = 54
-local ball = Instance.new("Frame")
+local ball = Instance.new("TextButton")
 ball.Size = UDim2.fromOffset(BALL, BALL)
 ball.Position = UDim2.new(0, 22, 0.5, 130)
 ball.BackgroundColor3 = Color3.fromRGB(15, 19, 29)
 ball.BackgroundTransparency = 0.18
 ball.BorderSizePixel = 0
-ball.Name = "ZakaBall"
-ball.Active = true
+ball.AutoButtonColor = false
+ball.Text = ""
 ball.Visible = false
+ball.ZIndex = 50
 ball.Parent = gui
 corner(ball, math.floor(BALL / 2))
 local ballStroke = stroke(ball, Color3.fromRGB(130, 200, 255), 1.6, 0.4)
-
-local ballGlow = Instance.new("Frame")
-ballGlow.Size = UDim2.new(1, -10, 1, -10)
-ballGlow.Position = UDim2.new(0, 5, 0, 5)
-ballGlow.BackgroundColor3 = Color3.fromRGB(70, 140, 240)
-ballGlow.BackgroundTransparency = 0.82
-ballGlow.BorderSizePixel = 0
-ballGlow.Parent = ball
-corner(ballGlow, math.floor((BALL - 10) / 2))
 
 local ballTxt = Instance.new("TextLabel")
 ballTxt.Size = UDim2.new(1, 0, 1, 0)
@@ -566,68 +528,59 @@ ballTxt.TextColor3 = Color3.fromRGB(200, 230, 255)
 ballTxt.TextSize = 21
 ballTxt.Font = Enum.Font.GothamBold
 ballTxt.Active = false
+ballTxt.ZIndex = 51
 ballTxt.Parent = ball
 
-local function showPanel(on)
-    main.Visible = on
-    ball.Visible = not on
-end
+local shrinkBtn = Instance.new("TextButton")
+shrinkBtn.Size = UDim2.fromOffset(26, 26)
+shrinkBtn.Position = UDim2.new(1, -70, 0, 10)
+shrinkBtn.BackgroundColor3 = Color3.fromRGB(120, 190, 255)
+shrinkBtn.BackgroundTransparency = 0.78
+shrinkBtn.Text = "—"
+shrinkBtn.TextSize = 17
+shrinkBtn.Font = Enum.Font.GothamBold
+shrinkBtn.TextColor3 = Color3.fromRGB(220, 240, 255)
+shrinkBtn.BorderSizePixel = 0
+shrinkBtn.AutoButtonColor = false
+shrinkBtn.Parent = bar
+corner(shrinkBtn, 8)
 
--- 标题栏上的收起按钮
-local collapseBtn = Instance.new("TextButton")
-collapseBtn.Size = UDim2.fromOffset(26, 26)
-collapseBtn.Position = UDim2.new(1, -70, 0, 10)
-collapseBtn.Name = "ZakaCollapse"
-collapseBtn.AutoButtonColor = false
-collapseBtn.BackgroundColor3 = Color3.fromRGB(120, 190, 255)
-collapseBtn.BackgroundTransparency = 0.78
-collapseBtn.Text = "—"
-collapseBtn.TextSize = 17
-collapseBtn.Font = Enum.Font.GothamBold
-collapseBtn.TextColor3 = Color3.fromRGB(220, 240, 255)
-collapseBtn.BorderSizePixel = 0
-collapseBtn.AutoButtonColor = false
-collapseBtn.Parent = bar
-corner(collapseBtn, 8)
-collapseBtn.MouseButton1Click:Connect(function() showPanel(false) end)
+shrinkBtn.MouseButton1Click:Connect(function()
+    main.Visible = false
+    ball.Visible = true
+end)
 
--- 球的拖动 + 点击
 do
     local dragging, dragStart, origin, moved = false, nil, nil, false
-
-    ball.InputBegan:Connect(function(input)
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
-            dragging = true
-            moved = false
-            dragStart = input.Position
-            origin = ball.Position
-        end
+    ball.MouseButton1Down:Connect(function()
+        dragging = true; moved = false
+        dragStart = UIS:GetMouseLocation()
+        origin = ball.Position
     end)
-
     UIS.InputChanged:Connect(function(input)
         if not dragging then return end
-        if input.UserInputType == Enum.UserInputType.MouseMovement
-            or input.UserInputType == Enum.UserInputType.Touch then
-            local d = input.Position - dragStart
+        if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+            local d = UIS:GetMouseLocation() - dragStart
             if math.abs(d.X) > 6 or math.abs(d.Y) > 6 then moved = true end
-            ball.Position = UDim2.new(origin.X.Scale, origin.X.Offset + d.X,
-                                      origin.Y.Scale, origin.Y.Offset + d.Y)
+            ball.Position = UDim2.new(origin.X.Scale, origin.X.Offset + d.X, origin.Y.Scale, origin.Y.Offset + d.Y)
         end
     end)
-
     UIS.InputEnded:Connect(function(input)
-        if not dragging then return end
-        if input.UserInputType == Enum.UserInputType.MouseButton1
-            or input.UserInputType == Enum.UserInputType.Touch then
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = false
-            if not moved then showPanel(true) end
+        end
+    end)
+    ball.MouseButton1Click:Connect(function()
+        if not moved then
+            main.Visible = true
+            ball.Visible = false
         end
     end)
 end
+-- [插入点 A 结束]
 
 --=====================================================================
--- 拖动
+-- 拖动（你原代码这段保留不动）
 --=====================================================================
 do
     local dragging, dragStart, startPos = false, nil, nil
@@ -649,9 +602,7 @@ do
             dragging = false
         end
     end)
-end
-
---=====================================================================
+end--=====================================================================
 -- ESP 实体
 --=====================================================================
 local visuals = {}          -- [player] = {...}
@@ -669,19 +620,6 @@ local BONES_R6 = {
     {"Torso", "Left Leg"}, {"Torso", "Right Leg"},
 }
 
---=====================================================================
---  投影引擎  |  修的就是"越远越往上飘"
---
---  旧写法两个坑：
---   1) WorldToViewportPoint 的第二个返回值是"在不在屏幕矩形内"，不是
---      "看不看得见"。目标一贴屏幕边缘它就返回 false，整个框被藏掉，
---      远处目标尤其容易踩这个，表现就是框忽上忽下、时有时无。
---   2) 框高靠固定偏移估算（脚底写死 rootPos - 2.9）。角色一旦有缩放、
---      换了骨骼，误差被距离放大，远处就直接糊到头顶上面去了。
---
---  现在改成：每个顶点自己做真实透视投影（相机矩阵 + FOV），头、脚、
---  双手各算各的，最后取包围盒。框的位置完全由真实坐标决定，不估算。
---=====================================================================
 local view = { inv = nil, vp = nil, tanX = 1, tanY = 1, cf = nil, native = false }
 
 local function cameraCFrame()
@@ -721,7 +659,6 @@ local function refreshView()
     return true
 end
 
--- 世界坐标 -> 屏幕坐标。返回 Vector2, 深度；相机背后返回 nil
 local function project(pos)
     if not view.inv then return nil end
     if view.native then
@@ -734,17 +671,11 @@ local function project(pos)
     if depth <= 0.08 then return nil end
     local nx = rel.X / (depth * view.tanX)
     local ny = rel.Y / (depth * view.tanY)
-    -- 极端角度（贴脸、超出透视极限）丢掉，防止画出乱飞的线
     if math.abs(nx) > 90 or math.abs(ny) > 90 then return nil end
     local vp = view.vp
     return Vector2.new((0.5 + nx * 0.5) * vp.X, (0.5 - ny * 0.5) * vp.Y + CFG.ESP.OffsetY), depth
 end
 
---=====================================================================
---  模型 / 队伍 / 血量 自适应
---  不同游戏的角色骨架、部件命名、队伍字段各不相同，这里全部自动嗅探，
---  不再写死 R6/R15、也不写死 Team。
---=====================================================================
 local HEAD_NAMES = {"Head", "head", "HeadPart", "HumanoidHead", "HEAD"}
 local FOOT_NAMES = {"LeftFoot", "RightFoot", "Left Leg", "Right Leg",
                     "LeftLowerLeg", "RightLowerLeg", "Foot", "Feet", "LeftFootPart"}
@@ -759,8 +690,6 @@ local function findPart(char, names)
     return nil
 end
 
--- 骨架解析：只缓存"部件引用"，坐标每帧现算。
--- 这点很关键：如果把 Position 存进缓存，目标一移动框就会僵在原地。
 local MAX_BONES = 22
 
 local function buildRig(char)
@@ -786,7 +715,6 @@ local function buildRig(char)
         if p and p:IsA("BasePart") then table.insert(hands, p) end
     end
 
-    -- 骨骼从 Motor6D 关节生成：任何自定义骨架都能画，不用预先知道骨骼名
     local bones = {}
     local okB = pcall(function()
         for _, j in ipairs(char:GetDescendants()) do
@@ -813,7 +741,6 @@ local function buildRig(char)
              bones = bones, root = root, hip = hip, hum = hum }
 end
 
--- 每帧现算头顶和脚底（部件动，点就动）
 local function rigPoints(rig)
     local headTop, feet
     if rig.head then
@@ -827,7 +754,6 @@ local function rigPoints(rig)
     return headTop, feet
 end
 
--- 队伍判定：Team 对象 / 属性 / 角色标签 / TeamColor 四种来源都试
 local function teamKey(plr)
     if plr.Team then
         local okN, nm = pcall(function() return plr.Team.Name end)
@@ -860,7 +786,7 @@ local function sameTeam(plr)
     local a = teamKey(plr)
     local b = teamKey(LP)
     if a ~= nil and b ~= nil then return a == b end
-    return false   -- 没有队伍信息的游戏（混战服）默认全员当敌人
+    return false
 end
 
 local function healthOf(char, hum)
@@ -989,9 +915,6 @@ local function alive(plr)
     return c, h
 end
 
---=====================================================================
--- FOV 圈
---=====================================================================
 local fovCircle = D("Circle")
 if fovCircle then
     fovCircle.Thickness = 1.4
@@ -1000,9 +923,6 @@ if fovCircle then
     fovCircle.NumSides = 64
 end
 
---=====================================================================
--- 工具函数
---=====================================================================
 local rayParams = RaycastParams.new()
 rayParams.FilterType = Enum.RaycastFilterType.Exclude
 rayParams.IgnoreWater = true
@@ -1033,7 +953,6 @@ local function getAimPart(char, mode)
     elseif mode == "躯干" then
         return char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("HumanoidRootPart")
     else
-        -- 智能：优先头，血量低时打躯干，贴脸时打躯干
         local head = char:FindFirstChild("Head")
         local torso = char:FindFirstChild("UpperTorso") or char:FindFirstChild("Torso") or char:FindFirstChild("HumanoidRootPart")
         if not head then return torso end
@@ -1043,9 +962,6 @@ local function getAimPart(char, mode)
     end
 end
 
---=====================================================================
---  ESP 主循环
---=====================================================================
 local frameCount = 0
 local espErrShown = false
 
@@ -1090,7 +1006,6 @@ local function updateESP()
         if CFG.ESP.TeamCheck and isTeam then
             setVis(v, false)
         else
-            -- 骨架缓存：角色换了才重建，别每帧扫一遍模型
             if v.rigChar ~= t.char then
                 v.rigChar = t.char
                 local okRig, rig = pcall(buildRig, t.char)
@@ -1109,7 +1024,6 @@ local function updateESP()
                 setVis(v, true)
                 local col = espColor(isTeam)
 
-                -- 包围盒：头顶点 + 脚底点 + 双手，全部用真实投影
                 local minX = math.min(pTop.X, pBot.X)
                 local maxX = math.max(pTop.X, pBot.X)
                 local minY = math.min(pTop.Y, pBot.Y)
@@ -1128,9 +1042,7 @@ local function updateESP()
                 local hgt = maxY - minY
                 local wdt = maxX - minX
                 if hgt < 5 then hgt = 5 end
-                -- 侧身或双手贴身时，给一个合理宽度，别细成一条线
                 if wdt < hgt * 0.28 then wdt = hgt * 0.28 end
-                -- 举手/持枪会把手撑得比身体宽，收一下，别画成大方块
                 if wdt > hgt * 1.15 then wdt = hgt * 1.15 end
 
                 local cx = (minX + maxX) * 0.5
@@ -1151,7 +1063,6 @@ local function updateESP()
                     v.boxOut.Size = boxSize + Vector2.new(2, 2)
                 end
 
-                -- 血条
                 local hpRatio, hpVal = healthOf(t.char, t.hum)
                 if v.hpBg and v.hpFill then
                     v.hpBg.Visible = CFG.ESP.Health
@@ -1199,7 +1110,6 @@ local function updateESP()
                     v.tracer.Color = col
                 end
 
-                -- 骨骼：每条连线两端各自投影，任一端在相机背后就跳过这一条
                 local drawBones = CFG.ESP.Skeleton and i <= 16
                 for bi = 1, #v.bones do
                     local l = v.bones[bi]
@@ -1230,19 +1140,6 @@ local function updateESP()
     end
 end
 
---=====================================================================
--- 自瞄
---=====================================================================
---=====================================================================
---  自瞄  |  手机手感版
---  手机上的关键点：
---   · 手指按住右半屏才跟，点面板上的按钮不算（不然点菜单枪口就飞）
---   · 指数平滑代替固定 Lerp —— 固定步长必然过冲，越近越抖
---   · 死区：离目标足够近就不动，避免准星在目标身上来回划
---   · 限速：每秒最多转多少度，手抖和目标瞬移都不会甩出去
---   · 预判 = 基础量 + 距离/弹速，远距离不再打空
---   · 锁定宽限 0.25 秒，目标闪进掩体不会立刻换人
---=====================================================================
 local aimTarget = nil
 local lockedPlr = nil
 local lostSince = nil
@@ -1259,12 +1156,10 @@ local function holdActive()
         return p.X >= ap.X and p.X <= ap.X + as.X and p.Y >= ap.Y and p.Y <= ap.Y + as.Y
     end
 
-    -- 鼠标左键（电脑/部分执行器）
     if UIS:IsMouseButtonPressed(Enum.UserInputType.MouseButton1) then
         local mp = UIS:GetMouseLocation()
         if not onPanel(mp) then return true end
     end
-    -- 手机触摸：右半屏，且不在面板上
     local touches = UIS:GetTouches()
     for _, t in ipairs(touches) do
         if t.Position.X > Camera.ViewportSize.X * 0.5 and not onPanel(t.Position) then
@@ -1274,7 +1169,6 @@ local function holdActive()
     return false
 end
 
--- 可见性检测带缓存，手机上一帧打好几次射线会掉帧
 local function visibleTo(part)
     local key = tostring(part)
     local now = tick()
@@ -1287,7 +1181,6 @@ local function visibleTo(part)
     return v
 end
 
--- 单目标校验 + 评分（锁定保持也走这条）
 local function validateTarget(plr, center, camPos)
     if plr == nil or plr == LP then return nil end
     if CFG.AIM.TeamCheck and sameTeam(plr) then return nil end
@@ -1316,7 +1209,6 @@ local function validateTarget(plr, center, camPos)
         hpRatio = math.clamp(h.Health / math.max(h.MaxHealth, 1), 0, 1)
     end
 
-    -- 屏幕距离为主，残血和远处做微调，优先打近的、好打的
     local score = screenDist + hpRatio * 90 + (worldDist / CFG.AIM.MaxDist) * 120
     return { part = part, plr = plr, hum = h, score = score, dist = worldDist, screen = sp }
 end
@@ -1336,7 +1228,6 @@ local function updateAim(dt)
     local camPos = view.cf.Position
     local now = tick()
 
-    -- 1) 锁定保持
     local best = nil
     if CFG.AIM.Sticky and lockedPlr then
         best = validateTarget(lockedPlr, center, camPos)
@@ -1351,14 +1242,12 @@ local function updateAim(dt)
         end
     end
 
-    -- 宽限期内（目标刚闪进掩体）不换人，也不硬瞄
     if CFG.AIM.Sticky and lockedPlr and not best and lostSince then
         aimTarget = nil
         statusTxt.Text = string.format("目标丢失 · 搜索中")
         return
     end
 
-    -- 2) 重新挑人：新目标要稳定一下才接管，避免一闪而过的目标抢焦点
     if not best then
         local cand, bestScore = nil, math.huge
         for _, plr in ipairs(Players:GetPlayers()) do
@@ -1398,10 +1287,8 @@ local function updateAim(dt)
     end
     statusTxt.Text = string.format("锁定 %s · %.0fm", best.plr.Name, best.dist)
 
-    -- 3) 按住才瞄（手机右半屏）
     if not holdActive() then return end
 
-    -- 4) 预判：基础量 + 距离/弹速 的飞行时间补偿
     local predTime = CFG.AIM.Prediction
     if CFG.AIM.BulletSpeed and CFG.AIM.BulletSpeed > 1 then
         predTime = predTime + (best.dist / CFG.AIM.BulletSpeed) * 0.85
@@ -1412,7 +1299,6 @@ local function updateAim(dt)
         if okV and vel then aimPos = aimPos + vel * predTime end
     end
 
-    -- 5) 转角 → 死区 → 指数平滑 → 限速
     local curCF = Camera.CFrame
     local targetCF = CFrame.lookAt(curCF.Position, aimPos)
     local dot = math.clamp(curCF.LookVector:Dot(targetCF.LookVector), -1, 1)
@@ -1428,21 +1314,16 @@ local function updateAim(dt)
     end
     alpha = math.clamp(alpha, 0, 1)
     Camera.CFrame = curCF:Lerp(targetCF, alpha)
-end
-
---=====================================================================
--- 帧循环
---=====================================================================
-local conn
+endlocal conn
 conn = RunService.RenderStepped:Connect(function(dt)
     frameCount = frameCount + 1
 
-    -- 呼吸灯
     local pulse = (math.sin(tick() * 1.7) + 1) * 0.5
     mainStroke.Transparency = 0.38 + pulse * 0.42
     mainStroke.Color = Color3.fromRGB(120 + math.floor(40 * pulse), 190, 255)
     dot.BackgroundTransparency = 0.05 + pulse * 0.45
 
+    -- [新增] 球呼吸灯
     if ball.Visible and ballStroke then
         ballStroke.Transparency = 0.26 + pulse * 0.42
         ballTxt.TextColor3 = Color3.fromRGB(180 + math.floor(50 * pulse), 215, 255)
@@ -1467,9 +1348,6 @@ conn = RunService.RenderStepped:Connect(function(dt)
     end
 end)
 
---=====================================================================
--- 卸载
---=====================================================================
 local function unload()
     pcall(function() conn:Disconnect() end)
     for _, v in pairs(visuals) do destroyVisual(v) end
@@ -1483,7 +1361,6 @@ _G.ZakaUnload = unload
 
 closeBtn.MouseButton1Click:Connect(unload)
 
--- 玩家进出
 Players.PlayerRemoving:Connect(function(plr)
     if visuals[plr] then
         destroyVisual(visuals[plr])
@@ -1491,7 +1368,6 @@ Players.PlayerRemoving:Connect(function(plr)
     end
 end)
 
--- 相机切换
 Workspace:GetPropertyChangedSignal("CurrentCamera"):Connect(function()
     if Workspace.CurrentCamera then Camera = Workspace.CurrentCamera end
 end)
@@ -1505,7 +1381,6 @@ do
     if ok then CFG.GAME.Resolved = key end
 end
 
--- 诊断：出问题时把这几行发出来，就能看出是哪套骨架/哪套队伍字段
 pcall(function()
     local vp = Camera.ViewportSize
     print(string.format("[Zaka] 游戏=%s PlaceId=%s FOV=%.1f(%s) 视口=%dx%d 预设=%s",
