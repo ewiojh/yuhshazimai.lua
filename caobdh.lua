@@ -1,5 +1,3 @@
-
-
 if not game:IsLoaded() then game.Loaded:Wait() end
 
 local Players      = game:GetService("Players")
@@ -311,9 +309,7 @@ local function addToggle(text, default, setter)
     end)
 
     return row
-end
-
-local function addSlider(text, min, max, default, setter)
+endlocal function addSlider(text, min, max, default, setter)
     local row = Instance.new("Frame")
     row.Size = UDim2.new(1, -6, 0, 46)
     row.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
@@ -644,9 +640,7 @@ do
             dragging = false
         end
     end)
-end
-
---=====================================================================
+end--=====================================================================
 -- ESP 实体
 --=====================================================================
 local visuals = {}          -- [player] = {...}
